@@ -52,7 +52,7 @@ class Nanori:
         print(command)
         self.s.send(command.encode('utf-8'))
         recv=self.s.recv(1024)
-        
+
     def getStatus(self,ch):
         command = 'STS'+str(ch) +'?' + self.crlf
         print("getStatus.command=",command)
@@ -82,10 +82,43 @@ class Nanori:
         elif former_buf[2] == 'N':
             s_p_n = 'ccw'
 
-        return r_or_l,s_p_n,pulse
+        # 4文字目を取得する（limit switchの状態を示す16進数）
+        ch_limit_switch = former_buf[3]
+
+        return r_or_l,s_p_n,pulse, ch_limit_switch
+    # end of getStatus
+
+    def isLSon(self, switch_type, hex_value):
+        # switch type は
+        # HOLD/HPLS/CCWLS/CWLS のいずれかである
+        if switch_type not in ['HOLD', 'HPLS', 'CCWLS', 'CWLS']:
+            print('switch type should be HOLD, HPLS, CCWLS, or CWLS')
+            return
+
+        def is_bit_set(hex_value, bit_position):
+            # 16進数の値を10進数に変換
+            decimal_value = int(hex_value, 16)
+            # 指定されたビットが立っているかを判定
+            return (decimal_value & (1 << bit_position)) != 0
+
+        def checkBit(switch, hex_value):
+            # bitの情報は
+            # 0: holdの状態
+            # 1: HPLS
+            # 2: CCWLS
+            # 3: CWLS 
+            switch = switch.upper()
+            bit_dict = {"HOLD": 3, "HPLS": 2, "CCWLS": 1, "CWLS": 0}
+            target_bit = bit_dict[switch]
+            # print(target_bit)
+            is_set = is_bit_set(hex_value, target_bit)
+            return is_set
+
+        return(checkBit(switch_type, hex_value))
+    # end of isLSon
     
     def getPosition(self, ch):
-        r_or_l, s_p_n, pulse = self.getStatus(ch)
+        r_or_l, s_p_n, pulse, ch_info = self.getStatus(ch)
         return int(pulse)
 
     def switchSpeed(self, ch, speed):
@@ -124,7 +157,7 @@ class Nanori:
         # 軸の移動速度が遅すぎるとこのループで'stop'を検出することが至難
         # 1000pps以上であればモンダイは無かった
         while True:
-            r_or_l, s_p_n, curr_pulse = self.getStatus(channel)
+            r_or_l, s_p_n, curr_pulse, chinfo = self.getStatus(channel)
             print(s_p_n)
             if s_p_n == 'stop' and i_count != 0:
                 print('stop')
@@ -150,30 +183,12 @@ class Nanori:
     # end of stopAxis
 
     def checkLS(self, channel):
-        # hardware limit switch の状態を確認する
-        # LS_16?H でハードウェアリミット
-        command = 'LS_16?H' + self.crlf
-        self.s.send(command.encode('utf-8'))
-        recv=self.s.recv(1024)
-        rec_mes = recv.decode('utf-8')
-        print(rec_mes)
-        # channel は intにして recvの前から channel文字目を解析する
-        i_channnel = int(channel)
-        status = int(rec_mes[i_channnel])
-        print(type(status))
-        if status == 1:
-            print('CW limit!')
-        elif status == 2:
-            print('CCW limit!')
-        elif status == 0:
-            print('normal position')
-        # 8 の意味がわかっていない
-        # 軸を動かした直後に停止している状態であれば、0が返ってくる
-        # 軸を動かす以前にリミットがついているかどうかを確認して踏んでいなければ 8 が返るらしい
-        elif status == 8:
-            print("not moved.")
-        return status
-
+        r_or_l, s_p_n, pulse, ch_limit_switch = nanori.getStatus(channel)
+        print("Limit=",ch_limit_switch)
+        print(" Hold=",nanori.isLSon('HOLD', ch_limit_switch))
+        print(" CWLS=",nanori.isLSon('CWLS', ch_limit_switch))
+        print("CCWLS=",nanori.isLSon('CCWLS', ch_limit_switch))
+    
     def setSpeed(self, ch, lmh, speed_value):
         # lmh が 'L', 'M', 'H' のいずれかであることを確認
         if lmh not in ['L', 'M', 'H']:
@@ -235,10 +250,13 @@ if __name__ == '__main__':
     # speed = nanori.getSpeed('0','L')
     # print(speed)
     # nanori.moveAbs('0',int(sys.argv[2]))
-    curr_flag = nanori.getHoldStatus(0)
+    channel = sys.argv[1]
+    curr_flag = nanori.getHoldStatus(channel)
     if curr_flag:
         print("current flag is on")
-        nanori.setHoldStatus(0,'off')
+        nanori.setHoldStatus(channel,'off')
     else:
-        nanori.setHoldStatus(0,'on')
-    print(nanori.getHoldStatus(0))
+        nanori.setHoldStatus(channel,'on')
+    print(nanori.getHoldStatus(channel))
+
+    nanori.checkLS(channel)

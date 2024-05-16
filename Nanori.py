@@ -27,18 +27,45 @@ class Nanori:
         # recv=self.s.recv(1024)
         # print(recv)
 
-    def getStatus(self,ch):
-        command = 'STS'+str(ch) +'?' + self.crlf
+    # hold on/off の状態を得る
+    def getHoldStatus(self, ch):
+        command = "HOLD"+"?"+str(ch)+self.crlf
+        print(command)
         self.s.send(command.encode('utf-8'))
         recv=self.s.recv(1024).decode('utf-8')
-        print(recv)
+        print("getHoldStatus [rec]=",recv)
+        if "ON" in recv:
+            return True
+        else:
+            return False
+
+    # hold on/off の状態を変更する
+    def setHoldStatus(self, ch, on_off):
+        # on_off は 小文字に変換したとき 'on' or 'off' であることを確認
+        komoji_char = on_off.lower()
+        if komoji_char not in ['on', 'off']:
+            print('on_off should be on or off')
+            return
+        else:
+            switch = on_off.upper()
+        command = "HOLD"+str(ch)+switch+self.crlf
+        print(command)
+        self.s.send(command.encode('utf-8'))
+        recv=self.s.recv(1024)
+        
+    def getStatus(self,ch):
+        command = 'STS'+str(ch) +'?' + self.crlf
+        print("getStatus.command=",command)
+        self.s.send(command.encode('utf-8'))
+        recv=self.s.recv(1024).decode('utf-8')
+        print("getStatus [rec]=",recv)
         # "+"もしくは"-"でスプリットし、最後のカラムの値をintegerに変換する
         import re
         cols=re.split('[+-]',recv)
         former_buf=cols[-2]
         pulse = int(cols[-1])
 
-        print(pulse)
+        print("pulse=",pulse)
 
         # former_buf は非常に複雑
         # 1文字目が　Rであらば 'remote', Lであれば 'local'
@@ -78,16 +105,17 @@ class Nanori:
     # end of setSpeed
 
     def moveAbs(self, channel, abs_pulse):
+        print("moveAbs starts")
         # abs_pulseが負の場合には文字列に'-'を追加
         if abs_pulse < 0:
             command = 'ABS' + str(channel) + str(abs_pulse)
         else: 
             command = 'ABS' + str(channel) + '+' + str(abs_pulse)
         final_command = command + self.crlf
-        print(final_command)
+        print("moveAbs.Command=",final_command)
         self.s.send(final_command.encode('utf-8'))
         rec_mess=self.s.recv(1024)
-        print(rec_mess)
+        print("moveAbs.received:",rec_mess)
         # これを入れておかないと最初の状態が「停止」になる
         # 多分、加速度の設定によっては時間は変わると思われるが今のところハードコードしておく
         time.sleep(0.1)
@@ -101,7 +129,7 @@ class Nanori:
             if s_p_n == 'stop' and i_count != 0:
                 print('stop')
                 break
-            time.sleep(0.1)
+            time.sleep(0.2)
             i_count += 1
     # end of moveAbs
 
@@ -202,8 +230,15 @@ if __name__ == '__main__':
     # nanori.setSpeed('0','H')
     # nanori.moveAbs('0',int(sys.argv[1]))
     # print(nanori.checkLS('0'))
-    nanori.setSpeed('0','M',int(sys.argv[1]))
-    nanori.switchSpeed('0', 'M')
-    speed = nanori.getSpeed('0','L')
-    print(speed)
-    nanori.moveAbs('0',int(sys.argv[2]))
+    # nanori.setSpeed('0','M',int(sys.argv[1]))
+    # nanori.switchSpeed('0', 'M')
+    # speed = nanori.getSpeed('0','L')
+    # print(speed)
+    # nanori.moveAbs('0',int(sys.argv[2]))
+    curr_flag = nanori.getHoldStatus(0)
+    if curr_flag:
+        print("current flag is on")
+        nanori.setHoldStatus(0,'off')
+    else:
+        nanori.setHoldStatus(0,'on')
+    print(nanori.getHoldStatus(0))

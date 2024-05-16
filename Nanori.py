@@ -28,14 +28,17 @@ class Nanori:
         # print(recv)
 
     def getStatus(self,ch):
-        command = 'STS'+ch +'?' + self.crlf
+        command = 'STS'+str(ch) +'?' + self.crlf
         self.s.send(command.encode('utf-8'))
         recv=self.s.recv(1024).decode('utf-8')
+        print(recv)
         # "+"もしくは"-"でスプリットし、最後のカラムの値をintegerに変換する
         import re
         cols=re.split('[+-]',recv)
         former_buf=cols[-2]
         pulse = int(cols[-1])
+
+        print(pulse)
 
         # former_buf は非常に複雑
         # 1文字目が　Rであらば 'remote', Lであれば 'local'
@@ -191,14 +194,16 @@ class Nanori:
                     break
                 time.sleep(0.5)
 
-nanori=Nanori()
-# nanori.test()
-#nanori.stopAxis('0')
-# nanori.setSpeed('0','H')
-# nanori.moveAbs('0',int(sys.argv[1]))
-# print(nanori.checkLS('0'))
-nanori.setSpeed('0','M',int(sys.argv[1]))
-nanori.switchSpeed('0', 'M')
-speed = nanori.getSpeed('0','L')
-print(speed)
-nanori.moveAbs('0',int(sys.argv[2]))
+# mainが関数として存在していなければ以下を実行
+if __name__ == '__main__':
+    nanori=Nanori()
+    # nanori.test()
+    #nanori.stopAxis('0')
+    # nanori.setSpeed('0','H')
+    # nanori.moveAbs('0',int(sys.argv[1]))
+    # print(nanori.checkLS('0'))
+    nanori.setSpeed('0','M',int(sys.argv[1]))
+    nanori.switchSpeed('0', 'M')
+    speed = nanori.getSpeed('0','L')
+    print(speed)
+    nanori.moveAbs('0',int(sys.argv[2]))

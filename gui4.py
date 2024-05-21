@@ -66,7 +66,6 @@ class AxisControlWidget(QWidget):
         self.hold_button.clicked.connect(self.toggle_hold)
         self.hold_button.setFixedWidth(100)
         self.main_layout.addWidget(self.hold_button)
-        
 
         self.setLayout(self.main_layout)
 
@@ -129,7 +128,10 @@ class AxisControlWidget(QWidget):
     def stop_movement(self):
         # 緊急停止の処理
         self.update_status('stopped')
-        # 実際の停止処理はここに実装
+        self.nanori.stopAxis(self.axis_number)
+        # 停止後のパルス数を self.current_pulse_label に表示
+        value = nanori.getPosition(self.axis_number)
+        self.current_pulse_label.setText(str(value))
 
     def update_status(self, status):
         # 状態に応じて色を変更
@@ -153,14 +155,13 @@ class ValveControlWidget(QWidget):
     def __init__(self, nanori, valve_number):
         super().__init__()
         self.nanori = nanori
+        # valve_number 1-5 に対応した軸のチャンネルは以下の通り
+        # {1: 0, 2: 2, 3: 4, 4: 6, 5: 8}
+        self.dic_valve_channel = {1: 0, 2: 2, 3: 4, 4: 6, 5: 8}
         # valve_number (1-5)
         self.valve_number = valve_number
         self.initUI()
         self.i_valve_push = 0
-
-        # valve_number 1-5 に対応した軸のチャンネルは以下の通り
-        # {1: 0, 2: 2, 3: 4, 4: 6, 5: 8}
-        self.dic_valve_channel = {1: 0, 2: 2, 3: 4, 4: 6, 5: 8}
 
     def initUI(self):
         self.main_layout = QHBoxLayout()
@@ -171,9 +172,33 @@ class ValveControlWidget(QWidget):
 
         # トグルボタンを作成
         self.toggle_button = QPushButton('open')
+        # text size を 32pts に設定
+        self.toggle_button.setStyleSheet("font-size: 32pt")
         self.toggle_button.clicked.connect(self.toggle_valve)
         self.main_layout.addWidget(self.toggle_button)
+        self.toggle_button.setFixedWidth(100)
+        self.toggle_button.setFixedHeight(100)
 
+        # 吸着しているかどうかのステータスを表示するランプを追加
+        # 吸着している場合は緑、吸着していない場合は赤
+        # 吸着しているかどうかは、nanori.getHoldStatus(channel)で取得できる
+        # channelはvalve_numberに対応するものを取得する
+        channel = self.dic_valve_channel[self.valve_number]
+        print("Channel:",channel)
+        is_hold = nanori.getHoldStatus(channel)
+        print("Is hold:",is_hold)
+
+        self.lamp = QLabel()
+        self.lamp.setFixedWidth(100)
+        self.lamp.setFixedHeight(50)
+        self.lamp.setAlignment(Qt.AlignCenter)
+
+        if is_hold:
+            self.lamp.setStyleSheet("background-color: green")
+        else:
+            self.lamp.setStyleSheet("background-color: red")
+
+        self.main_layout.addWidget(self.lamp)
         self.setLayout(self.main_layout)
 
     def toggle_valve(self):
@@ -182,11 +207,14 @@ class ValveControlWidget(QWidget):
         # 2種類のスピードを切り替える (open, close)
         if self.i_valve_push % 2 == 1:
             self.toggle_button.setText('open')
+            # 色も変更する
+            self.toggle_button.setStyleSheet("background-color: red")
             # channel は valve_number に対応するものを取得する
             channel = self.dic_valve_channel[self.valve_number]
             print("Channel:",channel)
             # バルブを開く
             self.nanori.setHoldStatus(channel, 'on')
+            
             print("Switching valve open")
         else:
             self.toggle_button.setText('off')
@@ -195,6 +223,7 @@ class ValveControlWidget(QWidget):
             print("Channel:",channel)
             # バルブを閉じる
             self.nanori.setHoldStatus(channel, 'off')
+            self.toggle_button.setStyleSheet("background-color: green")
 
 # GUI全体を作成するクラス 
 class NanoriControlWidget(QWidget):

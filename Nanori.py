@@ -1,5 +1,5 @@
 # socket通信を行う
-import sys,time
+import sys,time,datetime
 import socket
 
 class Nanori:
@@ -26,6 +26,36 @@ class Nanori:
         print(recv)
         # recv=self.s.recv(1024)
         # print(recv)
+
+    # checking the LS status and wait for finishing
+    def waitLSon(self, channel, which_switch="CW",timestep=0.1, timeout=10):
+        # which_switch is either "CW" or "CCW"
+        if which_switch not in ["CW", "CCW"]:
+            print("which_switch should be CW or CCW")
+            return
+
+        def checkIf(flags):
+            isHold, isHPLS, isCWLS, isCCWLS = flags
+            if which_switch == "CW":
+                return isCWLS
+            elif which_switch == "CCW":
+                return isCCWLS
+            elif which_switch == "HOLD":
+                return isHold
+            elif which_switch == "HPLS":
+                return isHPLS
+
+        start_time = datetime.datetime.now()
+        while(True):
+            print("Checking channel=",channel)
+            isIt = checkIf(self.checkLS(channel))
+            if isIt:
+                break
+            curr_time = datetime.datetime.now()
+            time.sleep(timestep)
+            if (curr_time - start_time).seconds > timeout:
+                print("timeout")
+                break
 
     # hold on/off の状態を得る
     def getHoldStatus(self, ch):
@@ -156,14 +186,14 @@ class Nanori:
         i_count = 0
         # 軸の移動速度が遅すぎるとこのループで'stop'を検出することが至難
         # 1000pps以上であればモンダイは無かった
-        while True:
-            r_or_l, s_p_n, curr_pulse, chinfo = self.getStatus(channel)
-            print(s_p_n)
-            if s_p_n == 'stop' and i_count != 0:
-                print('stop')
-                break
-            time.sleep(0.2)
-            i_count += 1
+        # while True:
+        #     r_or_l, s_p_n, curr_pulse, chinfo = self.getStatus(channel)
+        #     print(s_p_n)
+        #     if s_p_n == 'stop' and i_count != 0:
+        #         print('stop')
+        #         break
+        #     time.sleep(0.2)
+        #     i_count += 1
     # end of moveAbs
 
     def stopAxis(self, channel,option="rapid"):
@@ -171,6 +201,9 @@ class Nanori:
         if option not in ['rapid', 'smooth']:
             print('option should be rapid or smooth')
             return
+
+        # channelは整数で渡されている可能性があるが、１桁の16進数に変換する
+        channel = format(int(channel), 'x')
 
         if option == 'rapid':
             command = 'ESTP' + channel + self.crlf
@@ -183,11 +216,14 @@ class Nanori:
     # end of stopAxis
 
     def checkLS(self, channel):
-        r_or_l, s_p_n, pulse, ch_limit_switch = nanori.getStatus(channel)
+        r_or_l, s_p_n, pulse, ch_limit_switch = self.getStatus(channel)
         print("Limit=",ch_limit_switch)
-        print(" Hold=",nanori.isLSon('HOLD', ch_limit_switch))
-        print(" CWLS=",nanori.isLSon('CWLS', ch_limit_switch))
-        print("CCWLS=",nanori.isLSon('CCWLS', ch_limit_switch))
+        isHold = self.isLSon('HOLD', ch_limit_switch)
+        isHPLS = self.isLSon('HPLS', ch_limit_switch)
+        isCWLS = self.isLSon('CWLS', ch_limit_switch)
+        isCCWLS = self.isLSon('CCWLS', ch_limit_switch)
+
+        return  isHold, isHPLS, isCWLS, isCCWLS
     
     def setSpeed(self, ch, lmh, speed_value):
         # lmh が 'L', 'M', 'H' のいずれかであることを確認
@@ -226,9 +262,7 @@ class Nanori:
 
         if curr_pos == target_pos:
             print('already in the target position')
-        else:
-            # current position
-            nanori.moveAbs(channel,target_pos)
+        else: # current position nanori.moveAbs(channel,target_pos)
             for i in range(0,10):
                 r_or_l, s_p_n, curr_pulse=nanori.getStatus(channel)
                 print(curr_pulse)
@@ -259,4 +293,6 @@ if __name__ == '__main__':
         nanori.setHoldStatus(channel,'on')
     print(nanori.getHoldStatus(channel))
 
-    nanori.checkLS(channel)
+    # nanori.checkLS(channel)
+    # nanori.waitLSon(channel, which_switch="CW",timeout=10)
+    nanori.waitLSon(channel, which_switch="CCW",timeout=10,timestep=0.1)

@@ -7,24 +7,46 @@ from PyQt5.QtWidgets import QMessageBox
 import Nanori
 
 class AxisControlWidget(QWidget):
-    def __init__(self, nanori, axis_number):
+    def __init__(self, nanori_axis, axis_number):
         super().__init__()
-        self.nanori = nanori
+        self.nanori = nanori_axis
         self.axis_number = axis_number
+
+        # 軸情報について定義を辞書として
+        self.axi_dic = { 0: 'S-X', 1: 'S-Y1', 2: 'S-Y2', 3: 'S-Z1', 4: 'S-Z2', 5: 'F-X', 6: 'F-Y', 7: 'F-Z'}
+        # extract axis_name from self.axi_dic
+        self.axis_name = self.axi_dic[self.axis_number]
+
         self.initUI()
 
     def initUI(self):
         self.main_layout = QHBoxLayout()
+        # 軸名を表示する
+        self.axis_label = QLabel(self.axis_name)
+        # Font size is 32pts
+        self.axis_label.setStyleSheet("font-size: 18pt")
+        # set a fixed width to 150
+        self.axis_label.setFixedWidth(50)
+        self.main_layout.addWidget(self.axis_label)
 
         # 現在のパルス値を表示
-        value = nanori.getPosition(self.axis_number)
+        value = self.nanori.getPosition(self.axis_number)
         self.current_pulse_label = QLabel(str(value))
+        # QLabel: light blue background
+        # width is fixed to 300
+        # text position is 'centered'
+        self.current_pulse_label.setStyleSheet("background-color: lightblue")
+        self.current_pulse_label.setAlignment(Qt.AlignCenter)
+        self.current_pulse_label.setFixedWidth(300)
         self.main_layout.addWidget(self.current_pulse_label)
+         
         # 幅を固定する
         self.current_pulse_label.setFixedWidth(200)
 
         # 目標パルス値の入力
         self.target_pulse_input = QLineEdit()
+        # Fixed width to 200
+        self.target_pulse_input.setFixedWidth(200)
         self.main_layout.addWidget(self.target_pulse_input)
 
         # ABSボタン（絶対値移動）
@@ -130,7 +152,7 @@ class AxisControlWidget(QWidget):
         self.update_status('stopped')
         self.nanori.stopAxis(self.axis_number)
         # 停止後のパルス数を self.current_pulse_label に表示
-        value = nanori.getPosition(self.axis_number)
+        value = self.nanori.getPosition(self.axis_number)
         self.current_pulse_label.setText(str(value))
 
     def update_status(self, status):
@@ -173,11 +195,11 @@ class ValveControlWidget(QWidget):
         # トグルボタンを作成
         self.toggle_button = QPushButton('open')
         # text size を 32pts に設定
-        self.toggle_button.setStyleSheet("font-size: 32pt")
+        self.toggle_button.setStyleSheet("font-size: 16pt")
         self.toggle_button.clicked.connect(self.toggle_valve)
         self.main_layout.addWidget(self.toggle_button)
         self.toggle_button.setFixedWidth(100)
-        self.toggle_button.setFixedHeight(100)
+        self.toggle_button.setFixedHeight(25)
 
         # 吸着しているかどうかのステータスを表示するランプを追加
         # 吸着している場合は緑、吸着していない場合は赤
@@ -185,12 +207,12 @@ class ValveControlWidget(QWidget):
         # channelはvalve_numberに対応するものを取得する
         channel = self.dic_valve_channel[self.valve_number]
         print("Channel:",channel)
-        is_hold = nanori.getHoldStatus(channel)
+        is_hold = self.nanori.getHoldStatus(channel)
         print("Is hold:",is_hold)
 
         self.lamp = QLabel()
         self.lamp.setFixedWidth(100)
-        self.lamp.setFixedHeight(50)
+        self.lamp.setFixedHeight(25)
         self.lamp.setAlignment(Qt.AlignCenter)
 
         if is_hold:
@@ -227,17 +249,18 @@ class ValveControlWidget(QWidget):
 
 # GUI全体を作成するクラス 
 class NanoriControlWidget(QWidget):
-    def __init__(self,nanori_instance):
+    def __init__(self,nanori_axis, nanori_valve):
         super().__init__()
         self.initUI()
-        self.nanori = nanori_instance
+        self.nanori_axis = nanori_axis
+        self.nanori_valve = nanori_valve
 
     def initUI(self):
         self.main_layout = QVBoxLayout()
 
         # 複数の軸に対するウィジェットを作成
-        for i in range(0, 4):  # 例として4軸まで示す
-            axis_widget = AxisControlWidget(nanori,i)
+        for i in range(0, 8):  # 例として4軸まで示す
+            axis_widget = AxisControlWidget(nanori_axis,i)
             # current_pulse_labelに value を表示する
             self.main_layout.addWidget(axis_widget)
 
@@ -249,14 +272,37 @@ class NanoriControlWidget(QWidget):
         # この状態を保持する
         valve_number = [1,2,3,4,5]
         for i in valve_number:
-            valve_widget = ValveControlWidget(nanori,i)
+            valve_widget = ValveControlWidget(nanori_valve,i)
             self.main_layout.addWidget(valve_widget)
+
+        # Update button 
+        self.update_button = QPushButton('Update')
+        self.update_button.clicked.connect(self.update_all)
+        self.main_layout.addWidget(self.update_button)
 
         self.setLayout(self.main_layout)
 
+    def update_all(self):
+        # 全ての軸の現在のパルス値を更新する
+        for i in range(0, 8):
+            axis_widget = self.main_layout.itemAt(i).widget()
+            value = self.nanori_axis.getPosition(i)
+            axis_widget.current_pulse_label.setText(str(value))
+
+        # 全てのバルブのステータスを更新する
+        for i in range(8, 13):
+            valve_widget = self.main_layout.itemAt(i).widget()
+            channel = valve_widget.dic_valve_channel[valve_widget.valve_number]
+            is_hold = self.nanori_valve.getHoldStatus(channel)
+            if is_hold:
+                valve_widget.lamp.setStyleSheet("background-color: green")
+            else:
+                valve_widget.lamp.setStyleSheet("background-color: red")
+
 if __name__ == '__main__':
-    nanori = Nanori.Nanori()
+    nanori_axis = Nanori.Nanori('192.168.163.102',7777)
+    nanori_valve = Nanori.Nanori('192.168.163.101',7777)
     app = QApplication(sys.argv)
-    main_widget = NanoriControlWidget(nanori)
+    main_widget = NanoriControlWidget(nanori_axis, nanori_valve)
     main_widget.show()
     sys.exit(app.exec_())

@@ -3,11 +3,11 @@ import sys,time,datetime
 import socket
 
 class Nanori:
-    def __init__(self):
+    def __init__(self,address, port):
         # サーバーのIPアドレスとポート番号
-        server_ip = '10.10.122.178'
-        server_port = 7777
-        
+        server_ip = address
+        server_port = port
+
         # ソケットの作成
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((server_ip, server_port))
@@ -79,11 +79,23 @@ class Nanori:
         else:
             switch = on_off.upper()
         command = "HOLD"+str(ch)+switch+self.crlf
+        print("Execute:", command)
+        self.s.send(command.encode('utf-8'))
+        print("Sent")
+        # スイッチしても、バッファは帰ってこない
+        # recv=self.s.recv(1024)
+        # print(recv)
+
+    def getStatusCore(self,ch):
+        print("getStatusCore!!")
+        command = 'STS'+str(ch)+'?'+self.crlf
         print(command)
         self.s.send(command.encode('utf-8'))
-        recv=self.s.recv(1024)
-
-    def getStatus(self,ch):
+        recv=self.s.recv(1024).decode('utf-8')
+        print(recv)
+        return recv
+    
+    def getStatus(self, ch):
         command = 'STS'+str(ch) +'?' + self.crlf
         print("getStatus.command=",command)
         self.s.send(command.encode('utf-8'))
@@ -115,8 +127,28 @@ class Nanori:
         # 4文字目を取得する（limit switchの状態を示す16進数）
         ch_limit_switch = former_buf[3]
 
-        return r_or_l,s_p_n,pulse, ch_limit_switch
-    # end of getStatus
+        return r_or_l,s_p_n,pulse, ch_limit_switch 
+
+    def getStatusOBS(self,ch):
+        recv = self.getStatusCore(ch)
+        print(">>>>>>>>><>>>>>>>>>>")
+        print(recv)
+        print("<<<<<<<<<<<<<<<<<<<<")
+        # ５文字目までとｗをれ以降を分ける
+        former_buf = recv[:6]
+        latter_buf = recv[6:]
+
+        # １最初の１文字がであればかける数値を -1 にする
+        if former_buf[0] == '-':
+            seihu = -1
+        else:
+            seihu = 1
+        
+        # latter_buf を数字として取り出す
+        pulse = int(latter_buf) * seihu
+        print("pulse value=",pulse)
+
+        return 
 
     def isLSon(self, switch_type, hex_value):
         # switch type は
@@ -273,7 +305,7 @@ class Nanori:
 
 # mainが関数として存在していなければ以下を実行
 if __name__ == '__main__':
-    nanori=Nanori()
+    nanori=Nanori('192.168.163.101',7777)
     # nanori.test()
     #nanori.stopAxis('0')
     # nanori.setSpeed('0','H')
@@ -292,7 +324,16 @@ if __name__ == '__main__':
     else:
         nanori.setHoldStatus(channel,'on')
     print(nanori.getHoldStatus(channel))
+    # for i in range(0,16):
+        # 10進数のi を16進数に変換(1桁)
+        # hex_char = format(i, 'x')
+        # try:
+            # print(nanori.getStatus(hex_char))
+            # time.sleep(1)
+        # except Exception as e:
+            # print(e)
+            # continue
 
     # nanori.checkLS(channel)
     # nanori.waitLSon(channel, which_switch="CW",timeout=10)
-    nanori.waitLSon(channel, which_switch="CCW",timeout=10,timestep=0.1)
+    # nanori.waitLSon(channel, which_switch="CCW",timeout=10,timestep=0.1)

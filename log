@@ -1,0 +1,176 @@
+getStatusCore!!
+STS0?
+
+L0S000+0014854
+
+>>>>>>>>><>>>>>>>>>>
+L0S000+0014854
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 14854
+cannot access local variable 'former_buf' where it is not associated with a value
+getStatusCore!!
+STS1?
+
+L1S---+0020934
+
+>>>>>>>>><>>>>>>>>>>
+L1S---+0020934
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 20934
+cannot access local variable 'former_buf' where it is not associated with a value
+getStatusCore!!
+STS2?
+
+L2S---+0000600
+
+>>>>>>>>><>>>>>>>>>>
+L2S---+0000600
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 600
+cannot access local variable 'former_buf' where it is not associated with a value
+getStatusCore!!
+STS3?
+
+L3S000+0022909
+
+>>>>>>>>><>>>>>>>>>>
+L3S000+0022909
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 22909
+cannot access local variable 'former_buf' where it is not associated with a value
+getStatusCore!!
+STS4?
+
+L4S---+0009574
+
+>>>>>>>>><>>>>>>>>>>
+L4S---+0009574
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 9574
+cannot access local variable 'former_buf' where it is not associated with a value
+getStatusCore!!
+STS5?
+
+L5S---+0035759
+
+>>>>>>>>><>>>>>>>>>>
+L5S---+0035759
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 35759
+cannot access local variable 'former_buf' where it is not associated with a value
+getStatusCore!!
+STS6?
+
+L6S---+0024224
+
+>>>>>>>>><>>>>>>>>>>
+L6S---+0024224
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 24224
+cannot access local variable 'former_buf' where it is not associated with a value
+getStatusCore!!
+STS7?
+
+L7S000+0015124
+
+>>>>>>>>><>>>>>>>>>>
+L7S000+0015124
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 15124
+cannot access local variable 'former_buf' where it is not associated with a value
+getStatusCore!!
+STS8?
+
+L8S---+2097152
+
+>>>>>>>>><>>>>>>>>>>
+L8S---+2097152
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 2097152
+cannot access local variable 'former_buf' where it is not associated with a value
+getStatusCore!!
+STS9?
+
+L9S---+134217856
+
+>>>>>>>>><>>>>>>>>>>
+L9S---+134217856
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 134217856
+cannot access local variable 'former_buf' where it is not associated with a value
+getStatusCore!!
+STSa?
+
+LFS300+0000000
+
+>>>>>>>>><>>>>>>>>>>
+LFS300+0000000
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 0
+cannot access local variable 'former_buf' where it is not associated with a value
+getStatusCore!!
+STSb?
+
+LFS300+0000000
+
+>>>>>>>>><>>>>>>>>>>
+LFS300+0000000
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 0
+cannot access local variable 'former_buf' where it is not associated with a value
+getStatusCore!!
+STSc?
+
+LFS300+0000000
+
+>>>>>>>>><>>>>>>>>>>
+LFS300+0000000
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 0
+cannot access local variable 'former_buf' where it is not associated with a value
+getStatusCore!!
+STSd?
+
+LFS300+0000000
+
+>>>>>>>>><>>>>>>>>>>
+LFS300+0000000
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 0
+cannot access local variable 'former_buf' where it is not associated with a value
+getStatusCore!!
+STSe?
+
+LFS300+0000000
+
+>>>>>>>>><>>>>>>>>>>
+LFS300+0000000
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 0
+cannot access local variable 'former_buf' where it is not associated with a value
+getStatusCore!!
+STSf?
+
+LFS300+0000000
+
+>>>>>>>>><>>>>>>>>>>
+LFS300+0000000
+
+<<<<<<<<<<<<<<<<<<<<
+pulse value= 0
+cannot access local variable 'former_buf' where it is not associated with a value

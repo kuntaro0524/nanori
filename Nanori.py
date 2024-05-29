@@ -78,7 +78,9 @@ class Nanori:
             return
         else:
             switch = on_off.upper()
-        command = "HOLD"+str(ch)+switch+self.crlf
+        # ch は 0-15 の整数であるが、１桁の16進数に変換する
+        hex_char = format(int(ch), 'x').upper()
+        command = "HOLD"+str(hex_char)+switch+self.crlf
         print("Execute:", command)
         self.s.send(command.encode('utf-8'))
         print("Sent")
@@ -96,7 +98,9 @@ class Nanori:
         return recv
     
     def getStatus(self, ch):
-        command = 'STS'+str(ch) +'?' + self.crlf
+        # ch は 0-15 の整数であるが、１桁の16進数に変換する
+        hex_char = format(int(ch), 'x').upper()
+        command = 'STS'+str(hex_char) +'?' + self.crlf
         print("getStatus.command=",command)
         self.s.send(command.encode('utf-8'))
         recv=self.s.recv(1024).decode('utf-8')
@@ -150,7 +154,9 @@ class Nanori:
 
         return 
 
-    def isLSon(self, switch_type, hex_value):
+    def isLSon(self, switch_type, ch):
+        # ch は 1-15 の整数であるが、１桁の16進数に変換する
+        hex_value = format(int(ch), 'x').upper()
         # switch type は
         # HOLD/HPLS/CCWLS/CWLS のいずれかである
         if switch_type not in ['HOLD', 'HPLS', 'CCWLS', 'CWLS']:
@@ -170,9 +176,10 @@ class Nanori:
             # 2: CCWLS
             # 3: CWLS 
             switch = switch.upper()
+            print(f"switch={switch}")
             bit_dict = {"HOLD": 3, "HPLS": 2, "CCWLS": 1, "CWLS": 0}
             target_bit = bit_dict[switch]
-            # print(target_bit)
+            print(target_bit)
             is_set = is_bit_set(hex_value, target_bit)
             return is_set
 

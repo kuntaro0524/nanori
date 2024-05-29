@@ -280,7 +280,31 @@ class NanoriControlWidget(QWidget):
         self.update_button.clicked.connect(self.update_all)
         self.main_layout.addWidget(self.update_button)
 
+        # Cut button
+        self.cut_button = QPushButton('Cut')
+        self.cut_button.clicked.connect(self.cut_all)
+        self.main_layout.addWidget(self.cut_button)
+
         self.setLayout(self.main_layout)
+
+    def cut_all(self):
+        print("Cut button was pushed.")
+        # reset ch11
+        self.nanori_valve.setHoldStatus(11, 'on')
+        time.sleep(0.5)
+        self.nanori_valve.setHoldStatus(10, 'off')
+        time.sleep(0.5)
+        self.nanori_valve.setHoldStatus(10, 'on')
+
+        time.sleep(3.0)
+        print(self.nanori_valve.isLSon("CWLS",10))
+        time.sleep(0.1)
+        print(self.nanori_valve.isLSon("CCWLS",10))
+
+        self.nanori_valve.setHoldStatus(11, 'off')
+        time.sleep(0.5)
+        self.nanori_valve.setHoldStatus(11, 'on')
+        print(self.nanori_valve.isLSon("CCWLS",10))
 
     def update_all(self):
         # 全ての軸の現在のパルス値を更新する

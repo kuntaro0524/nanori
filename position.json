@@ -1,0 +1,52 @@
+[
+    {
+        "movement": "arm1_film_prep_zhigh",
+        "target": "arm1",
+        "positions": {
+            "s-z1": 20000,
+            "s-y1": 19856,
+            "s-x": 8000
+        }
+
+    }, 
+    {
+        "movement": "arm1_film_prep_zsurface",
+        "target": "arm1",
+        "positions": {
+            "s-z1": 24000,
+            "s-y1": 19856,
+            "s-x": 8000
+        }
+    }, 
+    {
+        "movement": "arm1_film_prep_zready",
+        "target": "arm1",
+        "positions": {
+            "s-z1": 23800,
+            "s-y1": 19856,
+            "s-x": 8000
+        }
+    },
+    {
+        "movement": "arm1_A1_position",
+        "target": "arm1",
+        "positions": {
+            "s-z1": 23800,
+            "s-y1": 9308,
+            "s-x": 20967
+        }
+    }, 
+    {
+        "movement": "arm1_retsu_relative",
+        "target": "arm1",
+        "positions": {
+            "s-x": 2255 
+        }
+    }, {
+        "movement": "arm1_gyou_relative",
+        "target": "arm1",
+        "positions": {
+            "s-y1": 2257
+        }
+    }
+]

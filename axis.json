@@ -1,0 +1,67 @@
+[
+	{
+		"axis-name": "s-x",
+		"server": "axis",
+		"channel": 0
+	},
+	{
+		"axis-name": "s-y1",
+		"server": "axis",
+		"channel": 1
+	},
+	{
+		"axis-name": "s-y2",
+		"server": "axis",
+		"channel": 2
+	},
+	{
+		"axis-name": "s-z1",
+		"server": "axis",
+		"channel": 3
+	},
+	{
+		"axis-name": "s-z2",
+		"server": "axis",
+		"channel": 4
+	},
+	{
+		"axis-name": "f-x",
+		"server": "axis",
+		"channel": 5
+	},
+	{
+		"axis-name": "f-y",
+		"server": "axis",
+		"channel": 6
+	},
+	{
+		"axis-name": "f-z",
+		"server": "axis",
+		"channel": 7
+	},
+	{
+		"axis-name": "v1",
+		"server": "valve",
+		"channel": 0
+	},
+	{
+		"axis-name": "v2",
+		"server": "valve",
+		"channel": 2
+	},
+	{
+		"axis_name": "v3",
+		"server": "valve",
+		"channel": 4
+	},
+	{
+		"axis_name": "v4",
+		"server": "valve",
+		"channel": 6
+	},
+	{
+		"axis_name": "v5",
+		"server": "valve",
+		"channel": 8
+	}
+]

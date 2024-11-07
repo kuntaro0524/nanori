@@ -1,6 +1,7 @@
 import sys
 import time
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QFrame
+from PyQt5.QtWidgets import QTabWidget
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox
@@ -258,8 +259,12 @@ class NanoriControlWidget(QWidget):
     def initUI(self):
         self.main_layout = QVBoxLayout()
 
+        # タブを追加する
+        # self.tab_widget = QTabWidget()
+        # self.main_layout.addWidget(self.tab_widget)
+
         # 複数の軸に対するウィジェットを作成
-        for i in range(0, 8):  # 例として4軸まで示す
+        for i in range(0, 8):  
             axis_widget = AxisControlWidget(nanori_axis,i)
             # current_pulse_labelに value を表示する
             self.main_layout.addWidget(axis_widget)
@@ -284,10 +289,20 @@ class NanoriControlWidget(QWidget):
         self.cut_button = QPushButton('Cut')
         self.cut_button.clicked.connect(self.cut_all)
         self.main_layout.addWidget(self.cut_button)
-
+        
+        # Cut timer box
+        # このボックスに何秒間でカットするか入力する
+        # ボタンのラベルを書く
+        self.cut_timer_label = QLabel('Cut Timer')
+        self.cut_timer_input = QLineEdit()
+        self.cut_timer_input.setFixedWidth(200)
+        self.main_layout.addWidget(self.cut_timer_input)
         self.setLayout(self.main_layout)
 
     def cut_all(self):
+        # cut timer から秒数を取得
+        cut_timer = float(self.cut_timer_input.text())
+        print("Cut timer:",cut_timer)
         print("Cut button was pushed.")
         # reset ch11
         self.nanori_valve.setHoldStatus(11, 'on')
@@ -296,7 +311,7 @@ class NanoriControlWidget(QWidget):
         time.sleep(0.5)
         self.nanori_valve.setHoldStatus(10, 'on')
 
-        time.sleep(3.0)
+        time.sleep(cut_timer)
         print(self.nanori_valve.isLSon("CWLS",10))
         time.sleep(0.1)
         print(self.nanori_valve.isLSon("CCWLS",10))

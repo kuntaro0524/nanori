@@ -339,8 +339,8 @@ class NanoriControlWidget(QWidget):
                 valve_widget.lamp.setStyleSheet("background-color: red")
 
 if __name__ == '__main__':
-    nanori_axis = Nanori.Nanori('192.168.163.102',7777)
-    nanori_valve = Nanori.Nanori('192.168.163.101',7777)
+    nanori_axis = Nanori.Nanori('10.178.163.102',7777)
+    nanori_valve = Nanori.Nanori('10.178.163.101',7777)
     app = QApplication(sys.argv)
     main_widget = NanoriControlWidget(nanori_axis, nanori_valve)
     main_widget.show()

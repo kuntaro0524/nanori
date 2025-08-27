@@ -146,7 +146,16 @@ class AxisControlWidget(QWidget):
     def move_relative(self):
         # 相対値移動の処理
         self.update_status('moving')
-        # 実際の移動処理はここに実装
+        # パルス値を取得
+        target_pulse = int(self.target_pulse_input.text())
+        print(f"Moving axis {self.axis_number} by {target_pulse} pulses")
+        # current position
+        current_position = self.nanori.getPosition(self.axis_number)
+        # target position
+        target_position = current_position + target_pulse
+        print(f"Current position: {current_position}, Target position: {target_position}")
+        print(f"Moving axis {self.axis_number} to {target_position}")
+        self.nanori.moveAbs(self.axis_number, target_position)
 
     def stop_movement(self):
         # 緊急停止の処理
@@ -289,7 +298,24 @@ class NanoriControlWidget(QWidget):
         self.cut_button = QPushButton('Cut')
         self.cut_button.clicked.connect(self.cut_all)
         self.main_layout.addWidget(self.cut_button)
-        
+
+        # Prep film chack
+        # button width is fixed to 200
+        self.prep_film_chack_button = QPushButton('Prep Film Chack Upper')
+        self.prep_film_chack_button.clicked.connect(self.prepFilmChackUpper)
+        self.main_layout.setAlignment(Qt.AlignTop)
+        self.prep_film_chack_button.setFixedWidth(200)
+        self.main_layout.addWidget(self.prep_film_chack_button)
+        # Prep film chack to hole1
+        # button width is fixed to 200
+        # ボタンは 'self_prep_film_chack_hole1_button' とし、
+        # self.prep_film_chack_buttonの右に配置する
+        self.self_prep_film_chack_hole1_button = QPushButton('Prep Film Chack Hole1')
+        self.self_prep_film_chack_hole1_button.clicked.connect(self.prepFilmChackUpper)
+        self.self_prep_film_chack_hole1_button.setFixedWidth(200)
+        self.main_layout.addWidget(self.self_prep_film_chack_hole1_button)
+        self.main_layout.setAlignment(Qt.AlignTop)
+
         # Cut timer box
         # このボックスに何秒間でカットするか入力する
         # ボタンのラベルを書く
@@ -337,6 +363,20 @@ class NanoriControlWidget(QWidget):
                 valve_widget.lamp.setStyleSheet("background-color: green")
             else:
                 valve_widget.lamp.setStyleSheet("background-color: red")
+
+    def prepFilmChackUpper(self):
+        # self.axi_dic = { 0: 'S-X', 1: 'S-Y1', 2: 'S-Y2', 3: 'S-Z1', 4: 'S-Z2', 5: 'F-X', 6: 'F-Y', 7: 'F-Z'}
+        # F-X: 2800
+        # F-Y: 23800
+        # F-Z: 22000 (a bit gap between the film) <-> 10000)
+        # Set the speed to High
+        self.nanori_axis.switchSpeed(5, 'H')
+        self.nanori_axis.switchSpeed(6, 'H')
+        self.nanori_axis.switchSpeed(7, 'H')
+        # move to the position
+        self.nanori_axis.moveAbs(5, 2800)
+        self.nanori_axis.moveAbs(6, 23800)
+        self.nanori_axis.moveAbs(7, 10000)
 
 if __name__ == '__main__':
     nanori_axis = Nanori.Nanori('10.178.163.102',7777)

@@ -56,8 +56,11 @@ class AxisControlWidget(QWidget):
         self.main_layout.addWidget(self.abs_button)
 
         # RELボタン（相対値移動）
-        self.rel_button = QPushButton('REL')
-        self.rel_button.clicked.connect(self.move_relative)
+        self.rel_button = QPushButton('R+')
+        self.rel_button.clicked.connect(self.move_relative_plus)
+        self.main_layout.addWidget(self.rel_button)
+        self.rel_button = QPushButton('R-')
+        self.rel_button.clicked.connect(self.move_relative_minus)
         self.main_layout.addWidget(self.rel_button)
 
         # STOPボタン（緊急停止）
@@ -143,7 +146,7 @@ class AxisControlWidget(QWidget):
         target_pulse = int(self.target_pulse_input.text())
         self.nanori.moveAbs(self.axis_number, target_pulse)
 
-    def move_relative(self):
+    def move_relative_plus(self):
         # 相対値移動の処理
         self.update_status('moving')
         # パルス値を取得
@@ -153,6 +156,20 @@ class AxisControlWidget(QWidget):
         current_position = self.nanori.getPosition(self.axis_number)
         # target position
         target_position = current_position + target_pulse
+        print(f"Current position: {current_position}, Target position: {target_position}")
+        print(f"Moving axis {self.axis_number} to {target_position}")
+        self.nanori.moveAbs(self.axis_number, target_position)
+
+    def move_relative_minus(self):
+        # 相対値移動の処理
+        self.update_status('moving')
+        # パルス値を取得
+        target_pulse = int(self.target_pulse_input.text())
+        print(f"Moving axis {self.axis_number} by {target_pulse} pulses")
+        # current position
+        current_position = self.nanori.getPosition(self.axis_number)
+        # target position
+        target_position = current_position - target_pulse
         print(f"Current position: {current_position}, Target position: {target_position}")
         print(f"Moving axis {self.axis_number} to {target_position}")
         self.nanori.moveAbs(self.axis_number, target_position)
@@ -289,41 +306,114 @@ class NanoriControlWidget(QWidget):
             valve_widget = ValveControlWidget(nanori_valve,i)
             self.main_layout.addWidget(valve_widget)
 
+        # Update button と Cut button を横並びにする
+        row = QHBoxLayout()
+        row.setSpacing(8)  # ボタン間の余白（お好みで）
+
         # Update button 
         self.update_button = QPushButton('Update')
         self.update_button.clicked.connect(self.update_all)
-        self.main_layout.addWidget(self.update_button)
+        row.addWidget(self.update_button)
+        self.update_button.setFixedWidth(100)
 
         # Cut button
         self.cut_button = QPushButton('Cut')
         self.cut_button.clicked.connect(self.cut_all)
-        self.main_layout.addWidget(self.cut_button)
-
-        # Prep film chack
-        # button width is fixed to 200
-        self.prep_film_chack_button = QPushButton('Prep Film Chack Upper')
-        self.prep_film_chack_button.clicked.connect(self.prepFilmChackUpper)
-        self.main_layout.setAlignment(Qt.AlignTop)
-        self.prep_film_chack_button.setFixedWidth(200)
-        self.main_layout.addWidget(self.prep_film_chack_button)
-        # Prep film chack to hole1
-        # button width is fixed to 200
-        # ボタンは 'self_prep_film_chack_hole1_button' とし、
-        # self.prep_film_chack_buttonの右に配置する
-        self.self_prep_film_chack_hole1_button = QPushButton('Prep Film Chack Hole1')
-        self.self_prep_film_chack_hole1_button.clicked.connect(self.prepFilmChackUpper)
-        self.self_prep_film_chack_hole1_button.setFixedWidth(200)
-        self.main_layout.addWidget(self.self_prep_film_chack_hole1_button)
-        self.main_layout.setAlignment(Qt.AlignTop)
+        row.addWidget(self.cut_button)
+        self.cut_button.setFixedWidth(100)
 
         # Cut timer box
         # このボックスに何秒間でカットするか入力する
         # ボタンのラベルを書く
+        # default: 3 sec
         self.cut_timer_label = QLabel('Cut Timer')
         self.cut_timer_input = QLineEdit()
         self.cut_timer_input.setFixedWidth(200)
-        self.main_layout.addWidget(self.cut_timer_input)
+        self.cut_timer_input.setText('3')
+        self.cut_timer_input.setFixedWidth(50)
+
+        row.addWidget(self.cut_timer_label)
+        row.addWidget(self.cut_timer_input)
         self.setLayout(self.main_layout)
+
+        #self.main_layout.addWidget(self.cut_timer_input)
+
+        # 右側を余白で押しのけたい場合（左寄せしたいとき）
+        row.addStretch()
+
+        # 縦並びレイアウトに「横一列」を追加
+        self.main_layout.addLayout(row)
+        # 画面が縦に広がったときでも上に張り付けたいなら、最後にストレッチ
+        self.main_layout.addStretch()
+
+        # --- ボタン行（横並び）を作る ---
+        row = QHBoxLayout()
+        row.setSpacing(8)  # ボタン間の余白（お好みで）
+        
+        # 左のボタン
+        self.prep_film_chack_button = QPushButton('Prep Film Chack Upper')
+        self.prep_film_chack_button.clicked.connect(self.prepFilmChackUpper)
+        self.prep_film_chack_button.setFixedWidth(200)
+        row.addWidget(self.prep_film_chack_button)
+        
+        # 右のボタン（コメントどおり「左ボタンの右」に並べる）
+        self.self_prep_film_chack_hole1_button = QPushButton('Prep Film Chack Hole1')
+        self.self_prep_film_chack_hole1_button.clicked.connect(self.prepHole1)
+        self.self_prep_film_chack_hole1_button.setFixedWidth(200)
+        row.addWidget(self.self_prep_film_chack_hole1_button)
+
+        # prep cut button
+        self.prep_cut_button = QPushButton('Prep Cut')
+        self.prep_cut_button.clicked.connect(self.prepCut)
+        self.prep_cut_button.setFixedWidth(200)
+        row.addWidget(self.prep_cut_button)
+
+        # down & release
+        self.prep_cut_button = QPushButton('Down and release')
+        self.prep_cut_button.clicked.connect(self.downAndRelease)
+        self.prep_cut_button.setFixedWidth(200)
+        row.addWidget(self.prep_cut_button)
+        
+        # 右側を余白で押しのけたい場合（左寄せしたいとき）
+        row.addStretch()
+
+        # 縦並びレイアウトに「横一列」を追加
+        self.main_layout.addLayout(row)
+        # 画面が縦に広がったときでも上に張り付けたいなら、最後にストレッチ
+        self.main_layout.addStretch()
+
+        ###############################3
+        # Last line
+        ###############################3
+        # --- ボタン行（横並び）を作る ---
+        row = QHBoxLayout()
+        row.setSpacing(8)  # ボタン間の余白（お好みで）
+        
+        # plate setting position
+        self.prep_cut_button = QPushButton('Plate setting position')
+        self.prep_cut_button.clicked.connect(self.movePlatePosition)
+        self.prep_cut_button.setFixedWidth(200)
+        row.addWidget(self.prep_cut_button)
+
+        # plate upper position
+        self.prep_upper_position_button = QPushButton('Grab plate')
+        self.prep_upper_position_button.clicked.connect(self.grabPlate)
+        self.prep_upper_position_button.setFixedWidth(200)
+        row.addWidget(self.prep_upper_position_button)
+
+        # Cut & Release
+        self.cut_and_release_button = QPushButton('Cut & Release')
+        self.cut_and_release_button.clicked.connect(self.cut_and_release)
+        self.cut_and_release_button.setFixedWidth(200)
+        row.addWidget(self.cut_and_release_button)
+        
+        # 右側を余白で押しのけたい場合（左寄せしたいとき）
+        row.addStretch()
+
+        # 縦並びレイアウトに「横一列」を追加
+        self.main_layout.addLayout(row)
+        # 画面が縦に広がったときでも上に張り付けたいなら、最後にストレッチ
+        self.main_layout.addStretch()
 
     def cut_all(self):
         # cut timer から秒数を取得
@@ -378,9 +468,137 @@ class NanoriControlWidget(QWidget):
         self.nanori_axis.moveAbs(6, 23800)
         self.nanori_axis.moveAbs(7, 10000)
 
+    def prepHole1(self):
+        # self.axi_dic = { 0: 'S-X', 1: 'S-Y1', 2: 'S-Y2', 3: 'S-Z1', 4: 'S-Z2', 5: 'F-X', 6: 'F-Y', 7: 'F-Z'}
+        # F-X: 35600
+        # F-Y: 24000
+        # F-Z: 19200
+        # Set the speed to High
+        self.nanori_axis.switchSpeed(5, 'H')
+        self.nanori_axis.switchSpeed(6, 'H')
+        self.nanori_axis.switchSpeed(7, 'H')
+        # move to the position
+        self.nanori_axis.moveAbs(5, 35400)
+        self.nanori_axis.moveAbs(6, 24160)
+        self.nanori_axis.moveAbs(7, 18000)
+
+    def downAndRelease(self):
+        self.nanori_axis.moveAbs(7, 19000)
+        time.sleep(3.0)
+        # self.axi_dic = { 0: 'S-X', 1: 'S-Y1', 2: 'S-Y2', 3: 'S-Z1', 4: 'S-Z2', 5: 'F-X', 6: 'F-Y', 7: 'F-Z'}
+        self.nanori_axis.moveAbs(7, 19700)
+        # valve 1 'close'
+        self.definitely_grub_release(grub_flag = False)
+        # 5 sec wait
+        time.sleep(3)
+        self.nanori_axis.moveAbs(7, 10000)
+
+    def prepCut(self):
+        # self.axi_dic = { 0: 'S-X', 1: 'S-Y1', 2: 'S-Y2', 3: 'S-Z1', 4: 'S-Z2', 5: 'F-X', 6: 'F-Y', 7: 'F-Z'}
+        # F-X: 2800
+        # F-Y: 23800
+        # F-Z: 22000
+        # Set the speed to Middle
+        self.nanori_axis.switchSpeed(5, 'H')
+        self.nanori_axis.switchSpeed(6, 'H')
+        self.nanori_axis.switchSpeed(7, 'H')
+        # move to the position
+        self.nanori_axis.moveAbs(5, 2800)
+        self.nanori_axis.moveAbs(6, 23800)
+        self.nanori_axis.moveAbs(7, 22000)
+        # valve 1 'on'
+        self.definitely_grub_release(grub_flag=True)
+
+    def movePlatePosition(self):
+        # self.axi_dic = { 0: 'S-X', 1: 'S-Y1', 2: 'S-Y2', 3: 'S-Z1', 4: 'S-Z2', 5: 'F-X', 6: 'F-Y', 7: 'F-Z'}
+        # S-X: 5500
+        # S-Y1: 19800
+        # S-Z1: 24600
+        # Set the speed to High
+        self.nanori_axis.switchSpeed(0, 'H')
+        self.nanori_axis.switchSpeed(1, 'H')
+        self.nanori_axis.switchSpeed(3, 'H')
+        # move to the position
+        self.nanori_axis.moveAbs(0, 5500)
+        self.nanori_axis.moveAbs(1, 19800)
+        self.nanori_axis.moveAbs(3, 24000) # 1-2 mm  upper from the stage
+
+    def grabPlate(self):
+        # self.axi_dic = { 0: 'S-X', 1: 'S-Y1', 2: 'S-Y2', 3: 'S-Z1', 4: 'S-Z2', 5: 'F-X', 6: 'F-Y', 7: 'F-Z'}
+        # S-X: 5500
+        # S-Y1: 19800
+        # S-Z1: 24600
+        # Set the speed to High
+        self.nanori_axis.switchSpeed(0, 'M')
+        self.nanori_axis.switchSpeed(1, 'M')
+        self.nanori_axis.switchSpeed(3, 'M')
+        # move to the position
+        self.nanori_axis.moveAbs(0, 5500)
+        self.nanori_axis.moveAbs(1, 19800)
+        self.nanori_axis.moveAbs(3, 24600) # 1-2 mm  upper from the stage
+        # Balve 2,3 open
+        self.nanori_valve.setHoldStatus(2, 'off')
+        self.nanori_valve.setHoldStatus(4, 'off')
+        # time sleep
+        time.sleep(2)
+        # S-Z1: 24000
+        self.nanori_axis.moveAbs(3, 24000)
+
+    # Grub the film and check the status
+    # grub_flag == True -> Grub the film
+    # grub_flag == False -> Release
+    def definitely_grub_release(self, grub_flag):
+        # n time out 
+        n_time_out = 5
+        # grub
+        if grub_flag == True:
+            for i in range(n_time_out):
+                self.nanori_valve.setHoldStatus(0, 'off')
+                time.sleep(0.5)
+                is_hold = self.nanori_valve.getHoldStatus(0)
+                if is_hold == False:
+                    print("Grub is successful")
+                    return True
+                else:
+                    print("Grub is not successful, try again")
+                    time.sleep(1)
+        else:
+            for i in range(n_time_out):
+                self.nanori_valve.setHoldStatus(0, 'on')
+                time.sleep(0.5)
+                is_hold = self.nanori_valve.getHoldStatus(0)
+                if is_hold == True:
+                    print("Release is successful")
+                    return True
+                else:
+                    print("Release is not successful, try again")
+                    time.sleep(1)
+
+    def cut_and_release(self):
+        self.prepFilmChackUpper()
+        print(f"Cut & Release will be started.")
+        time.sleep(10.0)
+        self.prepCut()
+        print("Prep cut is done.")
+        time.sleep(10.0)
+        print("Cutting will be started.")
+        self.cut_all()
+        print("Cutting is done.")
+        time.sleep(5.0)
+        print("Down & Release will be started.")
+        self.prepFilmChackUpper()
+        print("Prep film check upper is done.")
+        time.sleep(5.0)
+        print("Move to hole 1 position.")
+        self.prepHole1()
+        time.sleep(15.0)
+        print("Prep hole 1 is done.")
+        print("Down & Release will be started.")
+        self.downAndRelease()
+
 if __name__ == '__main__':
-    nanori_axis = Nanori.Nanori('10.178.163.102',7777)
-    nanori_valve = Nanori.Nanori('10.178.163.101',7777)
+    nanori_axis = Nanori.Nanori('192.168.111.102',7777)
+    nanori_valve = Nanori.Nanori('192.168.111.101',7777)
     app = QApplication(sys.argv)
     main_widget = NanoriControlWidget(nanori_axis, nanori_valve)
     main_widget.show()

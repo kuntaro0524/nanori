@@ -108,8 +108,15 @@ class Nanori:
         # "+"もしくは"-"でスプリットし、最後のカラムの値をintegerに変換する
         import re
         cols=re.split('[+-]',recv)
+        # +- のどちらかなので + のときは +1 を、 - のときは -1 をかける
+        pulse_input_sign = recv[len(cols[0])]
+        print(f"pulse_input_sign={pulse_input_sign}")
+
         former_buf=cols[-2]
-        pulse = int(cols[-1])
+        if pulse_input_sign == '+':
+            pulse = int(cols[-1])
+        else:
+            pulse = -1 * int(cols[-1])
 
         print("pulse=",pulse)
 
@@ -188,6 +195,7 @@ class Nanori:
     
     def getPosition(self, ch):
         r_or_l, s_p_n, pulse, ch_info = self.getStatus(ch)
+        print(f" r_or_l={r_or_l}, s_p_n={s_p_n}, pulse={pulse}, ch_info={ch_info} ")
         return int(pulse)
 
     def switchSpeed(self, ch, speed):

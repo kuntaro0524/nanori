@@ -76,7 +76,6 @@ def _fit_affine_2d(src_xy: np.ndarray, dst_uv: np.ndarray) -> np.ndarray:
     Av, *_ = np.linalg.lstsq(X, V, rcond=None)
     return np.vstack([Au.T, Av.T])  # [[a b c],[d e f]]
 
-
 class PlateCodesUniversalLite:
     def __init__(self, anchors: Dict[str, Tuple[float, float]], mode: str = "affine",
                  params: Optional[PlateParams] = None):

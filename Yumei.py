@@ -281,6 +281,12 @@ class NanoriControlWidget(QWidget):
         self.initUI()
         self.nanori_axis = nanori_axis
         self.nanori_valve = nanori_valve
+        # ディレクトリにあるA1, H1, A7の位置情報ファイルを読む
+        import json
+        from PlateCodesUniversalLite import PlateCodesUniversalLite
+        with open("anchors.json", "r") as f:
+            anchors = json.load(f)
+        self.platecode = PlateCodesUniversalLite(anchors, mode="affine")
 
     def initUI(self):
         self.main_layout = QVBoxLayout()
@@ -383,14 +389,14 @@ class NanoriControlWidget(QWidget):
         self.main_layout.addStretch()
 
         ###############################3
-        # Last line
+        # Last 2 line
         ###############################3
         # --- ボタン行（横並び）を作る ---
         row = QHBoxLayout()
         row.setSpacing(8)  # ボタン間の余白（お好みで）
         
         # plate setting position
-        self.prep_cut_button = QPushButton('Plate setting position')
+        self.prep_cut_button = QPushButton('The first plate setting')
         self.prep_cut_button.clicked.connect(self.movePlatePosition)
         self.prep_cut_button.setFixedWidth(200)
         row.addWidget(self.prep_cut_button)
@@ -406,6 +412,36 @@ class NanoriControlWidget(QWidget):
         self.cut_and_release_button.clicked.connect(self.cut_and_release)
         self.cut_and_release_button.setFixedWidth(200)
         row.addWidget(self.cut_and_release_button)
+        
+        # 右側を余白で押しのけたい場合（左寄せしたいとき）
+        row.addStretch()
+
+        # 縦並びレイアウトに「横一列」を追加
+        self.main_layout.addLayout(row)
+        # 画面が縦に広がったときでも上に張り付けたいなら、最後にストレッチ
+        self.main_layout.addStretch()
+
+        ###############################3
+        # Last line
+        ###############################3
+        # --- ボタン行（横並び）を作る ---
+        row = QHBoxLayout()
+        row.setSpacing(8)  # ボタン間の余白（お好みで）
+        
+        # Well definition box text (input text)
+        self.well_definition_label = QLabel('Well definition')
+        self.well_definition_input = QLineEdit()
+        self.well_definition_input.setFixedWidth(200)
+        self.well_definition_input.setText('A1')
+        self.well_definition_input.setFixedWidth(50)
+        row.addWidget(self.well_definition_label)
+        row.addWidget(self.well_definition_input)
+
+        # Move to well position button
+        self.move_to_well_button = QPushButton('Move to well position')
+        self.move_to_well_button.clicked.connect(self.moveToWellPosition)
+        self.move_to_well_button.setFixedWidth(200)
+        row.addWidget(self.move_to_well_button)
         
         # 右側を余白で押しのけたい場合（左寄せしたいとき）
         row.addStretch()
@@ -471,15 +507,15 @@ class NanoriControlWidget(QWidget):
     def prepHole1(self):
         # self.axi_dic = { 0: 'S-X', 1: 'S-Y1', 2: 'S-Y2', 3: 'S-Z1', 4: 'S-Z2', 5: 'F-X', 6: 'F-Y', 7: 'F-Z'}
         # F-X: 35600
-        # F-Y: 24000
+        # F-Y: 24240
         # F-Z: 19200
         # Set the speed to High
         self.nanori_axis.switchSpeed(5, 'H')
         self.nanori_axis.switchSpeed(6, 'H')
         self.nanori_axis.switchSpeed(7, 'H')
         # move to the position
-        self.nanori_axis.moveAbs(5, 35400)
-        self.nanori_axis.moveAbs(6, 24160)
+        self.nanori_axis.moveAbs(5, 35600)
+        self.nanori_axis.moveAbs(6, 24240)
         self.nanori_axis.moveAbs(7, 18000)
 
     def downAndRelease(self):
@@ -595,6 +631,19 @@ class NanoriControlWidget(QWidget):
         print("Prep hole 1 is done.")
         print("Down & Release will be started.")
         self.downAndRelease()
+
+    def moveToWellPosition(self):
+        # read well definition code from self.well_definition_input
+        well_id = self.well_definition_input.text()
+        values = self.platecode.getCodes(well_id)
+        # xcode, ycode 
+        xcode = int(values[0])
+        ycode = int(values[1])
+        self.nanori_axis.switchSpeed(0, 'M')
+        self.nanori_axis.switchSpeed(1, 'M')
+        self.nanori_axis.moveAbs(0, xcode)
+        self.nanori_axis.moveAbs(1, ycode)
+        print(f"Move to well position {well_id} (X: {xcode}, Y: {ycode})")
 
 if __name__ == '__main__':
     nanori_axis = Nanori.Nanori('192.168.111.102',7777)
